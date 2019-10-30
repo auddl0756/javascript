@@ -1,0 +1,1211 @@
+<html>
+<head>
+<title>game4_0.9-우주 전쟁(2015124147 이명륜)</title>
+<style>
+
+</style>
+     <script>
+//window.style.backgrountImage='배경1.png';
+    var cwidth = 1200;
+    var cheight = 1200;
+    var bh=640;
+    var ctx;
+    var canvas1;
+    var everything = [];
+   
+    var tid;
+    var tid2;
+    var tid3;
+	
+    var startballx=380;
+    var startbally=190;
+    var characterwidth=120;
+    var characterheight=90;
+    var ballvx=0;
+    var ballvy=0;
+  
+
+    var inmotion = false;
+    var horvelocity;
+    var verticalvel1;
+    var verticalvel2;
+    var gravity = 0;  // 멋진 호가 그려지게 임의로 지정
+   
+    var meteox1=800;
+    var meteoy1=100;
+    
+    var meteox2=800;
+    var meteoy2=200;
+
+    var meteox3=800;
+    var meteoy3=bh-200;
+    
+    var meteox4=800;
+    var meteoy4=bh-100;
+
+    var meteovelx1=-10;
+    var meteovely1=+2;
+    
+    var meteovelx2=-15;
+    var meteovely2=-2;
+
+    var meteovelx3=-15;
+    var meteovely3=+2;
+    
+    var meteovelx4=-20;
+    var meteovely4=-2;
+
+    var meteovelx5=-18;
+    var meteovely5=+3;
+    
+    var meteovelx6=-20;
+    var meteovely6=-3;
+
+    var meteorad=80;
+    var mw=20;
+    var randominitx=800;
+    var randominity=500;
+
+    var bosswidth=400;
+    var bossheight=250;
+    var bossvelx=0;
+    var bossvely=15;
+  
+    var score=0;
+    var missioncomplete;
+
+    
+    var keyonx1=0,keyony1=0;
+    var movextime1, moveytime1;
+    var savekeyx1, savekeyy1;
+
+
+    var characterhit=0;     //캐릭터가 운석,공격등에 맞았는지..
+    var bosshit=0;          //보스가 미사일 맞았는지..
+
+	var me=new Image();
+	me.src='우주비행선.png';
+	var deadme=new Image();
+    //deadme.src='우주비행선파괴.png';
+    deadme.src='폭발3.png';
+	
+	var meteoimage1=new Image();
+    meteoimage1.src='운석1.png';
+
+    var meteoimage2=new Image();
+    meteoimage2.src='운석2.png';
+
+    var meteoimage3=new Image();
+    meteoimage3.src='운석3.png';
+    
+    var meteoimage4=new Image();
+    meteoimage4.src='왕운석.png';
+ 
+    var bigufoimage=new Image();
+    bigufoimage.src='왕우주선2.png';
+
+    var bigufobrokenimage=new Image();
+    bigufobrokenimage.src='왕우주선파괴2.png';
+
+	//var disappear=new Image();
+	//disappear.src='사라짐.png';
+    
+    var missileimage=new Image();
+    missileimage.src='미사일.png';
+    var missileexplodeimage=new Image();
+   // missileexplodeimage.src='미사일폭발.png';
+    missileexplodeimage.src='폭발.png';
+
+    var attackimage=new Image();
+    attackimage.src='공격1.png';
+
+    var attackafterimage=new Image();
+    attackafterimage.src='공격1후.png';
+
+
+	var bg1=new Image();
+    bg1.src='우주배경.png';
+    
+    var hpimage=new Image();
+    hpimage.src='HP.png';
+
+    var nohpimage=new Image();
+    nohpimage.src='NOHP.png';
+
+    var shine=new Image();
+    shine.src='공격1.png';
+
+    var shineafter=new Image();
+    shineafter.src='공격1후.png';
+    // 객체들을 생성, 객체마다 캔버스 상의 배치를 위한 draw 메서드가 들어있음
+
+      
+    function MissileArm(bx,by,px,py) {
+            this.bx = bx;
+            this.by = by;
+            this.px = px;
+            this.py = py;
+            
+            this.draw = drawArm;
+            this.moveit = moveArm;    
+        }
+
+            function drawArm() {
+                ctx.strokeStyle = this.strokeStyle;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(this.bx,this.by);
+                ctx.lineTo(this.px,this.py);
+            
+                ctx.stroke();
+            }
+
+            function moveArm(dx,dy) {
+                this.bx -=dx;
+                this.by -=dy;
+                this.px-=dx;
+                this.py-=dy;
+            }
+
+    var missileweapon=new MissileArm(startballx,startbally,startballx,startbally);
+
+    function Picture (sx,sy,swidth,sheight,svx,svy,imga) {
+        this.sx = sx;
+        this.sy = sy;
+      
+        this.swidth = swidth;
+		this.sheight = sheight;
+		this.svx=svx;
+        this.svy=svy;
+        this.img = imga;
+        this.draw = drawAnImage;
+		this.movethis=moveAnImage;       ///tank1 moves..added
+        this.stop=stopAnImage;
+    }
+	
+    function drawAnImage() {
+        ctx.drawImage(this.img,this.sx,this.sy,this.swidth,this.sheight);
+    }
+
+    function moveAnImage(){
+       // var r=-1+Math.floor(Math.random()*3);
+        this.sx+=this.svx;
+        //this.sy-=this.svy*r;
+        this.sy+=this.svy;
+    }
+   
+	function stopAnImage(){
+		this.svx=0;
+		this.svy=0;
+    }
+
+    function init(){
+        ctx = document.getElementById('canvas').getContext('2d');
+        canvas1 = document.getElementById('canvas');
+        canvas1.addEventListener('mousedown',findball,false);
+        canvas1.addEventListener('mousemove',moveit,false);
+        canvas1.addEventListener('mouseup',finish,false);
+        // 처음 그리기
+   
+       tid2=setInterval(moveMeteo,100);
+       tid3=setInterval(timer,10);
+    
+    } 
+
+	var background=new Picture(0,0,cwidth,bh,0,0,bg1);
+	
+    var character=new Picture(startballx,startbally,characterwidth,characterheight,0,0,me);
+    var characterhp1=new Picture(startballx,startbally+characterheight,characterwidth/5,20,0,0,hpimage);
+    var characterhp2=new Picture(startballx+characterwidth/5+1,startbally+characterheight,characterwidth/5,20,0,0,hpimage);
+    var characterhp3=new Picture(startballx+characterwidth*2/5+2,startbally+characterheight,characterwidth/5,20,0,0,hpimage);
+    
+    var characterhp4=new Picture(startballx+characterwidth*3/5+3,startbally+characterheight,characterwidth/5,20,0,0,hpimage);
+    var characterhp5=new Picture(startballx+characterwidth*4/5+4,startbally+characterheight,characterwidth/5,20,0,0,hpimage);
+
+    var characterhps=[];
+    characterhps.push(characterhp1);
+    characterhps.push(characterhp2);
+    characterhps.push(characterhp3);
+    characterhps.push(characterhp4);
+    characterhps.push(characterhp5);
+
+    var missile1=new Picture(startballx+10,startbally-30,80,30,0,0,missileimage);
+  
+    var meteos=[];
+    var meteocount=0;
+    
+    var meteo1=new Picture(cwidth-bosswidth,100,meteorad,meteorad,meteovelx1,meteovely1,meteoimage1);
+    var meteo2=new Picture(cwidth-bosswidth,200,meteorad,meteorad,meteovelx2,meteovely2,meteoimage2);
+    var meteo3=new Picture(cwidth-bosswidth,bh-200,meteorad,meteorad,meteovelx3,meteovely3,meteoimage3);
+    var meteo4=new Picture(cwidth-bosswidth,bh-100,meteorad,meteorad,meteovelx4,meteovely4,meteoimage4);
+    var meteo5=new Picture(cwidth-bosswidth,bh-300,meteorad,meteorad,meteovelx5,meteovely5,meteoimage3);
+    var meteo6=new Picture(cwidth-bosswidth,300,meteorad,meteorad,meteovelx6,meteovely6,meteoimage4);
+    
+    meteos.push(meteo1);
+    meteos.push(meteo2);
+    meteos.push(meteo3);
+    meteos.push(meteo4);
+    meteos.push(meteo5);
+
+    var hp1=new Picture(cwidth-bosswidth,300,meteorad/2,meteorad/2,meteovelx6,meteovely6,hpimage);
+    var hp2=new Picture(cwidth-bosswidth,bh-300,meteorad/2,meteorad/2,meteovelx3,meteovely3,hpimage);
+    var hp3=new Picture(cwidth-bosswidth,bh-300,meteorad/2,meteorad/2,meteovelx3,meteovely3,hpimage);
+
+    ///hp 회복 아이템들..
+    var hps=[];
+   
+   
+
+    //meteos.push(hp1);
+   // meteos.push(hp2);
+    //meteos.push(meteo6);
+
+    var boss=new Picture(cwidth-bosswidth-60,bossheight/2,bosswidth,bossheight,bossvelx,bossvely,bigufoimage);
+    //var db=bosswidth/23;
+    var db=bosswidth/12;
+    var bosshp1=new Picture(cwidth-bosswidth-50,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp2=new Picture(cwidth-bosswidth-50+db+1,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp3=new Picture(cwidth-bosswidth-50+2*db+2,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp4=new Picture(cwidth-bosswidth-50+3*db+3,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp5=new Picture(cwidth-bosswidth-50+4*db+4,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp6=new Picture(cwidth-bosswidth-50+5*db+5,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp7=new Picture(cwidth-bosswidth-50+6*db+6,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp8=new Picture(cwidth-bosswidth-50+7*db+7,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp9=new Picture(cwidth-bosswidth-50+8*db+8,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp10=new Picture(cwidth-bosswidth-50+9*db+9,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+   
+
+    
+    var bosshp11=new Picture(cwidth-bosswidth-50+10*db+10,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp12=new Picture(cwidth-bosswidth-50+11*db+11,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp13=new Picture(cwidth-bosswidth-50+12*db+12,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp14=new Picture(cwidth-bosswidth-50+13*db+13,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp15=new Picture(cwidth-bosswidth-50+14*db+14,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp16=new Picture(cwidth-bosswidth-50+15*db+15,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp17=new Picture(cwidth-bosswidth-50+16*db+16,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp18=new Picture(cwidth-bosswidth-50+17*db+17,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp19=new Picture(cwidth-bosswidth-50+18*db+18,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+    var bosshp20=new Picture(cwidth-bosswidth-50+19*db+19,bossheight/2+bossheight,db,20,0,bossvely,hpimage);
+
+	everything.push(background);
+
+    everything.push(missileweapon);
+	everything.push(character);
+    
+
+    ///character의 hp이미지들..
+    for(var i=0;i<characterhps.length;i++){
+        everything.push(characterhps[i]);
+    }
+    /*
+   everything.push(characterhp1);
+   everything.push(characterhp2);
+   everything.push(characterhp3);
+   everything.push(characterhp4);
+   everything.push(characterhp5);
+*/
+
+   everything.push(boss);
+   everything.push(missile1);
+   everything.push(bosshp1);
+    everything.push(bosshp2);
+    everything.push(bosshp3);
+    everything.push(bosshp4);
+    everything.push(bosshp5);
+    everything.push(bosshp6);
+    everything.push(bosshp7);
+    everything.push(bosshp8);
+    everything.push(bosshp9);
+    everything.push(bosshp10);
+
+
+    everything.push(meteo1);
+    everything.push(meteo2);
+    everything.push(meteo3);
+    everything.push(meteo4);
+    everything.push(meteo5);
+    
+   
+    hps.push(hp1);
+        hps.push(hp2);
+        hps.push(hp3);
+        everything.push(hp1);
+        everything.push(hp2);
+        everything.push(hp3);
+
+    /*
+    everything.push(bosshp11);
+    everything.push(bosshp12);
+    everything.push(bosshp13);
+    everything.push(bosshp14);
+    everything.push(bosshp15);
+    everything.push(bosshp16);
+    everything.push(bosshp17);
+    everything.push(bosshp18);
+    everything.push(bosshp19);
+    */
+    
+    function findball(ev) {
+        var mx;
+        var my;
+       // alert(ev.layerX);
+        if ( ev.layerX ||  ev.layerX == 0) { // 파이어폭스, 크롬
+            mx= ev.layerX;
+			my = ev.layerY;
+			//alert(mx+"   "+my);
+        } else if (ev.offsetX || ev.offsetX == 0) { // 오페라
+            mx = ev.offsetX;
+            my = ev.offsetY;
+        }
+
+        if (distsq(mx,my, missile1.sx,missile1.sy) <missile1.swidth/2*missile1.swidth/2) {
+                inmotion = true;
+               
+              //  drawall();
+            }
+            if (distsq(mx,my, missile1.sx+missile1.swidth,missile1.sy) <missile1.swidth/2*missile1.swidth/2) {
+                inmotion = true;
+               
+                //drawall();
+            }
+            drawall();
+    }
+
+    var setTime=4000;
+    var m;
+    //var hpcalled=0;
+    function timer(){
+        m=(Math.floor(setTime/60)*60+(setTime%60))/100;
+       // var leftTime=m;
+        ctx.strokeStyle='blue';
+        ctx.font='50px arial';
+        if(setTime>1000 && setTime<2000){
+            ctx.strokeStyle='orange';
+        }
+        else if(setTime<=1000){
+            ctx.strokeStyle='red';
+        }
+        /*
+        if(setTimeout<3000 && hpcalled==0){
+            hpcalled=1;
+            hps.push(hp1);
+            hps.push(hp2);
+            hps.push(hp3);
+            everything.push(hp1);
+            everything.push(hp2);
+            everything.push(hp3);
+        }
+        */
+        //alert(m);
+        //alert(ctx.strokeText(Math.floor(setTime/60)*60+(setTime%60),0,bh+200));
+        ctx.strokeText(m,cwidth/2-20,40);
+        ctx.strokeStyle='yellow';
+        //ctx.stroke();
+        setTime--;
+        if(setTime<10){
+            character.img=deadme;
+        }
+        if(setTime<0){
+            alert('game over');
+            
+            clearInterval(tid);
+            clearInterval(tid2);
+            clearInterval(tid3);
+        }
+        
+    }
+    function moveMeteo(){
+        checkMeteo();
+       
+        //timer();
+        drawall();
+          
+    }
+    
+    function checkMeteo(){
+      
+        ///바람 효과    
+        character.sx-=10;
+        for(var i=0;i<characterhps.length;i++){
+            characterhps[i].sx-=10;
+        }
+        /*
+        characterhp1.sx-=10;
+        characterhp2.sx-=10;
+        characterhp3.sx-=10;
+
+        characterhp4.sx-=10;
+        characterhp5.sx-=10;
+        */
+        ///hp덩이들 움직임
+        for(var i=0;i<hps.length;i++){
+            hps[i].movethis();
+        }
+
+        ///hp덩이들 순환을 위해
+
+        for(var i=0;i<hps.length;i++){
+            if(hps[i].sx<0){
+                hps[i].sx=cwidth-bosswidth;
+                hps[i].sy=Math.floor(Math.random()*(bh-meteorad)); 
+                if(hps[i].svx>-35){
+                    hps[i].svx-=2;
+                }
+                hps[i].svy=-5+Math.floor(Math.random()*5);
+
+            }
+            if(hps[i].sy<0){
+                hps[i].sx=cwidth-bosswidth;
+                hps[i].sy=Math.floor(Math.random()*(bh-meteorad)); 
+                hps[i].svy=-5+Math.floor(Math.random()*5);  
+            }
+        }
+
+
+
+
+       ///hp덩이와 캐릭터 충돌시..
+       for(var i=0;i<hps.length;i++){
+         if(hps[i].img==hpimage){
+            if(hps[i].sx <character.sx +character.swidth-15 && hps[i].sx >character.sx +15){
+                if(hps[i].sy > character.sy && hps[i].sy+hps[i].sheight < character.sy+character.sheight){
+                   
+                   hps[i].img=nohpimage;
+                    hps[i].stop();
+                    hps[i].sx=cwidth;
+                    hps[i].sy=0;
+                   setTimeout(function(){
+                        if(characterhp1.img!=nohpimage && characterhp2.img==nohpimage){
+                            characterhp2.img=hpimage;
+                        }
+                        else if(characterhp1.img!=nohpimage && characterhp2.img!=nohpimage && characterhp3.img==nohpimage){
+                            characterhp3.img=hpimage;
+                        }
+                        else if(characterhp1.img!=nohpimage && characterhp2.img!=nohpimage && characterhp3.img!=nohpimage && characterhp4.img==nohpimage){
+                            characterhp4.img=hpimage;
+                        }
+                        else if(characterhp1.img!=nohpimage && characterhp2.img!=nohpimage && characterhp3.img!=nohpimage && characterhp4.img!=nohpimage && characterhp5.img==nohpimage){
+                            characterhp5.img=hpimage;
+                        }
+
+                 } ,500);
+                }
+             }
+          }
+        }
+
+        ///운석과 캐릭터 충돌시..
+        for(var i=0;i<meteos.length;i++){
+            if(meteos[i].sx < character.sx+character.swidth-15 && meteos[i].sx >character.sx+15){
+                if(meteos[i].sy+meteos[i].sheight >character.sy+10 && meteos[i].sy+meteos[i].sheight <character.sy+character.sheight/2-15){
+                    characterhit=1;
+                    //setTimeout(function(){},1500);
+                    //characterhit=1;
+                    character.sx-=10;
+                    character.sy+=10;
+                    for(var j=0;j<characterhps.length;j++){
+                        characterhps[j].sx-=10;
+                        characterhps[j].sy+=10;
+                    }
+                    /*
+                    characterhp1.sx-=10;
+                    characterhp2.sx-=10;
+                    characterhp3.sx-=10;
+                    
+                    characterhp4.sx-=10;
+                    characterhp5.sx-=10;
+                    
+                    characterhp1.sy+=10;
+                    characterhp2.sy+=10;
+                    characterhp3.sy+=10;
+                    
+                    characterhp4.sy+=10;
+                    characterhp5.sy+=10;
+                    */
+
+                   
+                }
+                else if(meteos[i].sy >=character.sy+character.sheight/2+15 && meteos[i].sy <character.sy+character.sheight-15){
+                    //characterhit=1;
+                    characterhit=1;
+                    //setTimeout(function(){},1500);
+                    character.sx-=10;
+                    character.sy-=10;
+                    
+                    for(var j=0;j<characterhps.length;j++){
+                        characterhps[j].sx-=10;
+                        characterhps[j].sy-=10;
+                    }
+                    /*
+                    characterhp1.sx-=10;
+                    characterhp2.sx-=10;
+                    characterhp3.sx-=10;
+
+                    characterhp4.sx-=10;
+                    characterhp5.sx-=10;
+
+                    characterhp1.sy-=10;
+                    characterhp2.sy-=10;
+                    characterhp3.sy-=10;
+
+                    characterhp4.sy-=10;
+                    characterhp5.sy-=10;
+                    */
+                  
+                }
+                //else if(meteos[i].sy <character.sy &&meteos[i].sy+meteos[i].sheight >character.sy+character.sheight-15){
+                else if((meteos[i].sy <=character.sy+character.sheight/2+15) && (meteos[i].sy+meteos[i].sheight >=character.sy+character.sheight/2-15)){
+                    //characterhit=1;
+                    characterhit=1;
+                    //setTimeout(function(){},1500);
+                    character.sx-=10;
+
+                    for(var j=0;j<characterhps.length;j++){
+                        characterhps[j].sx-=10;
+                       
+                    }
+                    /*
+                    characterhp1.sx-=10;
+                    characterhp2.sx-=10;
+                    characterhp3.sx-=10;
+
+                    characterhp4.sx-=10;
+                    characterhp5.sx-=10;
+                    */
+                }
+              
+
+                
+                //충돌로 인한 캐릭터 hp감소 이미지 표현하기..
+                if(characterhit==1){
+                    setTimeout(function(){
+                        for(var j=characterhps.length-1;j>=0;j--){
+                            if(characterhps[j].img==hpimage && characterhit==1){
+                                characterhps[j].img=nohpimage;
+                                break;
+                            }
+                        }
+                        /*
+                        if(characterhp5.img==hpimage && characterhit==1){
+                        characterhp5.img=nohpimage;
+                        //characterhit=0;
+                    }
+                    else if(characterhp5.img!=hpimage && characterhp4.img==hpimage && characterhit==1){
+                        characterhp4.img=nohpimage;
+                        //characterhit=0;
+                    }
+                    else if(characterhp5.img!=hpimage && characterhp4.img!=hpimage && characterhp3.img==hpimage && characterhit==1){
+                        characterhp3.img=nohpimage;
+                        //characterhit=0;
+                    }
+                    else if(characterhp5.img!=hpimage && characterhp4.img!=hpimage && characterhp3.img!=hpimage  && characterhp2.img==hpimage&& characterhit==1){
+                        characterhp2.img=nohpimage;
+                        //characterhit=0;
+                    }
+                    else if(characterhp5.img!=hpimage && characterhp4.img!=hpimage && characterhp3.img!=hpimage && characterhp2.img!=hpimage&& characterhp1.img==hpimage&& characterhit==1){
+                        characterhp1.img=nohpimage;
+                        //characterhit=0;
+                    }
+                    */
+                    
+                    ///캐릭터 hp=0이면 게임오버..
+                    if(characterhp1.img!=hpimage){
+                        character.img=deadme;
+                       // clearInterval(tid2);
+                        clearInterval(movextime1);
+                        clearInterval(moveytime1);
+                        clearInterval(tid);
+                        clearInterval(tid2);
+                        clearInterval(tid3);
+                        alert('game over');
+                    }
+                    characterhit=0;
+                    },500);
+                   
+                }
+
+
+            }
+        }
+
+      
+       
+        ///운석 움직임
+        for(var i=0;i<meteos.length;i++){
+            meteos[i].movethis();
+        }
+        /*
+       meteo1.movethis();
+       meteo2.movethis();
+       meteo3.movethis();
+       meteo4.movethis();
+        */
+       ///운석 순환을 위한..
+        for(var i=0;i<meteos.length;i++){
+            if(meteos[i].sx <0){
+                meteos[i].sx=cwidth-bosswidth;
+                meteos[i].sy=Math.floor(Math.random()*(bh-meteorad));
+                if(meteos[i].svx>-35){
+                    meteos[i].svx-=2;
+                }
+                meteos[i].svy=-5+Math.floor(Math.random()*5);
+            }
+            if(meteos[i].sy <0){
+                meteos[i].sx=cwidth-bosswidth;
+                meteos[i].sy=Math.floor(Math.random()*(bh-meteorad));
+                meteos[i].svy=-5+Math.floor(Math.random()*5);   
+            }
+        }
+        
+      
+        /*
+
+        if(meteo1.sx<0){
+            meteo1.sx=cwidth-bosswidth;
+            meteo1.sy=Math.floor(Math.random()*(bh-meteorad));
+            if(meteo1.svx>-35){    
+                meteo1.svx-=2;
+            }
+            meteo1.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo2.sx<0){
+            meteo2.sx=cwidth-bosswidth;
+            meteo2.sy=Math.floor(Math.random()*(bh-meteorad));
+            if(meteo2.svx>-35){    
+                meteo2.svx-=2;
+            }     
+            meteo2.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo3.sx<0){
+            meteo3.sx=cwidth-bosswidth;    
+            meteo3.sy=Math.floor(Math.random()*(bh-meteorad)); 
+            if(meteo3.svx>-35){    
+                meteo3.svx-=2;
+            }
+            meteo3.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo4.sx<0){
+            meteo4.sx=cwidth-bosswidth;
+            meteo4.sy=Math.floor(Math.random()*(bh-meteorad));   
+            if(meteo4.svx>-35){    
+                meteo4.svx-=2;
+            } 
+            meteo4.svy=-5+Math.floor(Math.random()*5);
+        }
+
+        if(meteo5.sx<0){
+            meteo5.sx=cwidth-bosswidth;    
+            meteo5.sy=Math.floor(Math.random()*(bh-meteorad)); 
+            if(meteo5.svx>-35){    
+                meteo5.svx-=2;
+            }
+            meteo5.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo6.sx<0){
+            meteo6.sx=cwidth-bosswidth;
+            meteo6.sy=Math.floor(Math.random()*(bh-meteorad));   
+            if(meteo6.svx>-35){    
+                meteo6.svx-=2;
+            } 
+            meteo6.svy=-5+Math.floor(Math.random()*5);
+        }
+
+      
+
+
+
+
+        if(meteo1.sy <0){
+            meteo1.sx=cwidth-bosswidth;
+            meteo1.sy=100;   
+            meteo1.svy=-5+Math.floor(Math.random()*5);   
+        }
+        if(meteo2.sy<0){
+            meteo2.sx=cwidth-bosswidth-50;
+            meteo2.sy=200;    
+            meteo2.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo3.sy <0){
+            meteo3.sx=cwidth-bosswidth;    
+            meteo3.sy=bh-200;  
+            meteo3.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo4.sy<0){
+            meteo4.sx=cwidth-bosswidth;
+            meteo4.sy=bh-100;  
+            meteo4.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo5.sy <0){
+            meteo5.sx=cwidth-bosswidth;    
+            meteo5.sy=bh-200;  
+            meteo5.svy=-5+Math.floor(Math.random()*5);
+        }
+        if(meteo6.sy<0){
+            meteo6.sx=cwidth-bosswidth;
+            meteo6.sy=bh-100;  
+            meteo6.svy=-5+Math.floor(Math.random()*5);
+        }
+        */
+
+    
+
+
+     
+        //보스 움직임
+        boss.movethis();
+
+        ///보스 및 보스체력 움직임..
+        var bosshps=[];
+        bosshps.push(bosshp1);
+        bosshps.push(bosshp2);
+        bosshps.push(bosshp3);
+        bosshps.push(bosshp4);
+        bosshps.push(bosshp5);
+        bosshps.push(bosshp6);
+        bosshps.push(bosshp7);
+        bosshps.push(bosshp8);
+        bosshps.push(bosshp9);
+        bosshps.push(bosshp10);
+
+        /*
+        bosshps.push(bosshp11);
+        bosshps.push(bosshp12);
+        bosshps.push(bosshp13);
+        bosshps.push(bosshp14);
+        bosshps.push(bosshp15);
+        bosshps.push(bosshp16);
+        bosshps.push(bosshp17);
+        bosshps.push(bosshp18);
+        bosshps.push(bosshp19);
+        */
+
+        
+
+        for(var i=0;i<bosshps.length;i++){
+            bosshps[i].movethis();
+        }
+        
+        if(boss.sy <0){
+            boss.sy=10;
+            boss.svy*=-1;
+            for(var i=0;i<bosshps.length;i++){
+                bosshps[i].sy=bossheight+10;
+                bosshps[i].svy*=-1;
+            }
+            
+        }
+        if(boss.sy+boss.sheight>bh){
+            boss.sy=bh-bossheight;
+            boss.svy*=-1;
+            for(var i=0;i<bosshps.length;i++){
+                bosshps[i].sy=bh;
+                bosshps[i].svy*=-1;
+            }
+        }
+
+
+        //보스 미사일 충돌시..
+        if(missile1.sx>boss.sx && missile1.sx < boss.sx+boss.swidth){
+            if(missile1.sy >boss.sy && missile1.sy <boss.sy+boss.sheight){
+                bosshit=1;
+                missile1.img=missileexplodeimage;
+                missile1.stop();
+                
+            }
+        }
+        var bosshpindex;
+        var leftTime=Math.floor(40-setTime/100);
+          //미사일로 인한 보스 hp감소 이미지 표현하기..
+          if(bosshit==1){
+                for(var i=0;i<bosshps.length;i++){
+                    if(bosshps[i].img==hpimage){
+                        bosshpindex=i;
+                        break;
+                    }
+                }
+
+                //보스 파괴시 게임 종료..
+                if(bosshpindex==bosshps.length-1){
+                    clearInterval(tid2);
+                    clearInterval(tid3);
+                    boss.img=bigufobrokenimage;
+                    alert('mission clear'+' time: '+leftTime);
+                }
+                setTimeout(function(){
+                    
+                    bosshps[bosshpindex].img=nohpimage;
+                    
+                    bosshit=0;
+                },1000);
+                
+           }
+
+    
+    }
+
+
+      document.addEventListener('keydown', keydownfunction);
+      document.addEventListener('keyup', keyupfunction);
+
+        ///키보드 부드럽게 움직이기 참고:http://izerocom2.cafe24.com/myjava/game1.js
+        function keyupfunction() {
+            if (event.keyCode == 37 || event.keyCode == 39) {
+                clearInterval(movextime1);
+                keyonx1 = 0;
+                // keyony1=0;
+            }
+
+            if (event.keyCode == 38 || event.keyCode == 40) {
+                clearInterval(moveytime1);
+                //keyonx1=0;
+                keyony1 = 0;
+            }
+        }
+
+        function keydownfunction(event) {
+
+            //ctx.clearRect(px2,py2,pw,ph);
+
+            //방향키 제외한 다른 키코드는 무시.
+            if (event.keyCode)
+                event.returnValue = false;
+
+            //player1 왼쪽,오른쪽 방향 움직임을 정의
+            if (event.keyCode == 37 || event.keyCode == 39) {
+                savekeyx1 = event.keyCode;
+                if (keyonx1 != 1) {
+                    keyonx1 = 1;   //키 꺼짐
+                    movextime1 = setInterval(keymovex1, 35);
+                }
+
+            }
+
+            //player1 위쪽,아래쪽 방향 움직임을 정의
+            if (event.keyCode == 38 || event.keyCode == 40) {
+                savekeyy1 = event.keyCode;
+                if (keyony1 != 1) {
+                    keyony1 = 1;
+                    moveytime1 = setInterval(keymovey1, 35);
+                }
+            }
+
+            drawall();
+        }
+
+        function keymovex1() {
+            if (savekeyx1 == 37 && character.sx > 0) {       // p1 left
+                character.sx-=10;
+                characterhp1.sx-=10;
+                characterhp2.sx-=10;
+                characterhp3.sx-=10;
+
+                characterhp4.sx-=10;
+                characterhp5.sx-=10;
+            }
+            if (savekeyx1 == 39 && character.sx + character.swidth < cwidth ) {       //p1 right
+                character.sx+=10;
+                characterhp1.sx+=10;
+                characterhp2.sx+=10;
+                characterhp3.sx+=10;
+
+                characterhp4.sx+=10;
+                characterhp5.sx+=10;
+            }
+        }
+
+        function keymovey1() {
+            if (savekeyy1 == 38 && character.sy > 0) {       //p1 upper  
+                character.sy -=10; 
+                characterhp1.sy-=10;
+                characterhp2.sy-=10;
+                characterhp3.sy-=10; 
+
+                characterhp4.sy-=10;
+                characterhp5.sy-=10; 
+            }
+
+            if (savekeyy1 == 40 && character.sy + character.sheight < bh) {    //p1 down
+                character.sy += 10;
+                characterhp1.sy+=10;
+                characterhp2.sy+=10;
+                characterhp3.sy+=10;
+
+                characterhp4.sy+=10;
+                characterhp5.sy+=10; 
+            }
+        }
+    
+    // 로딩 시에 호출됨. 그리기용으로 ctx 콘텍스트를 지정하고 이벤트용으로 canvas1을 지정
+  
+   
+    // 거리의 세제곱을 계산에 이용
+    function distsq(x1,y1,x2,y2) {
+        return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+    }
+    // 탄알 드래그와 missileweapon 변경을 위한 함수
+    function moveit(ev) {
+        var mx;
+        var my;
+        //alert(inmotion);
+        if (inmotion) {
+           /// alert('ddd');
+            if ( ev.layerX ||  ev.layerX == 0) { // 파이어폭스
+                mx= ev.layerX;
+				my = ev.layerY;
+				//alert(mx+"   "+my);
+            } else if (ev.offsetX || ev.offsetX == 0) { // 오페라
+                mx = ev.offsetX;
+                my = ev.offsetY;
+            }
+            if(mx<character.sx+character.swidth){
+                missile1.sx=mx;
+                missile1.sy=my;
+                missileweapon.bx=mx;
+                missileweapon.by=my;
+            }
+            else{
+                missile1.sx=mx-character.sx;
+                missile1.sy=my;
+                missileweapon.bx=mx-character.sx;
+                missileweapon.by=my;
+            }
+           // alert(missile1.sx+' '+missile1.sy);
+            drawall();
+        }
+    }
+
+    function finish(ev) {
+        // 마우스에서 손을 뗄 때, 탄알과 missileweapon이 드래그돼 있다면,
+        // 탄알이 포물선을 그리며 운동하게끔 지정
+        if (inmotion) {
+            inmotion = false;
+            // 최초 속도를 길이만큼 증가시켜야 함, 편의상 정사각형으로 만듬
+            // 700은 그럴싸한 호가 형성되도록 임의로 정한 값입니다. 
+            var outofcannon = distsq(missileweapon.bx,missileweapon.by,missileweapon.px,missileweapon.py)/500;
+            // 선 간격 bx, by, s1x, s1y, 새총의 상박을 토대로 구한 각도를 이용
+           // var angleradians = -Math.atan2(missileweapon.py-missileweapon.by,missileweapon.px-missileweapon.bx);
+           // horvelocity =  outofcannon*Math.cos(angleradians);
+           // verticalvel1 = - outofcannon*Math.sin(angleradians);
+           //alert(outofcannon);
+           if(outofcannon >60){
+               outofcannon=30;
+           } 
+           var angleradians=0;
+            horvelocity= 1.5*outofcannon*Math.sin(Math.PI/2);
+            verticalvel1= 2*outofcannon*Math.cos(Math.PI/2);
+
+            drawall();
+			tid = setInterval(change,100);
+          
+			//setTimeout(moveplaneboss1,3000);
+			//setTimeout(setInterval(movetank1,100), 3000);
+        }
+    }
+    function drawall() {
+        // drawall 함수는 캔버스 전체를 지운 후, everything 배열의 모든 원소를 그림
+        ctx.clearRect(0,0,cwidth,cheight);
+        var i;
+        //alert(m);
+        //ctx.strokeText(m,0,bh+200);
+        /*
+        meteo1.movethis();
+        meteo2.movethis();
+        meteo3.movethis();
+        meteo4.movethis();
+        if(meteo1.sx<0){
+            meteo1.sx=cwidth;
+            meteovelx1--;
+            //alert(meteovelx1);
+            //meteovely1*=-1;
+        }
+        if(meteo2.sx<0){
+            meteo2.sx=cwidth;
+            meteovelx2--;
+           // meteovely2*=-1;
+        }
+        if(meteo3.sx<0){
+            meteo3.sx=cwidth;
+            meteovelx3--;
+            //meteovely3*=-1;
+        }
+        if(meteo4.sx<0){
+            meteo4.sx=cwidth;
+            meteovelx4--;
+            //meteovely4*=-1;
+        }
+
+
+      
+        
+        if(meteo1.sy <0){
+            meteo1.sx=cwidth;
+            meteo1.sy=100;      
+        }
+        if(meteo2.sy<0){
+            meteo2.sx=cwidth;
+            meteo2.sy=200;    
+        }
+        if(meteo3.sy <0){
+            meteo3.sx=cwidth;    
+            meteo3.sy=bh-200;  
+        }
+        if(meteo4.sy<0){
+            meteo4.sx=cwidth;
+            meteo4.sy=bh-100;  
+        }
+
+        if(meteo1.sy+2*meteorad > bh){
+            meteo1.sx=cwidth;
+            meteo1.sy=bh-100;  
+        }
+        
+        if(meteo2.sy +2*meteorad> bh){
+            meteo2.sx=cwidth;
+            meteo2.sy=bh-100;  
+        }
+        
+        if(meteo3.sy +2*meteorad> bh){
+            meteo3.sx=cwidth;
+            meteo3.sy=bh-100;  
+        }
+        
+        if(meteo4.sy +2*meteorad> bh){
+            meteo4.sx=cwidth;
+            meteo4.sy=bh-100;  
+        }
+        */
+
+         /*
+        if(meteo1.sy <0){
+            meteo1.sy=meteorad/2;
+            meteovely1*=-1;
+        }
+        if(meteo2.sy<0){
+            meteo2.sy=meteorad/2;
+              meteovely2*=-1;
+        }
+        if(meteo3.sy <0){
+            meteo3.sy=meteorad/2;
+              meteovely2*=-1;
+        }
+        if(meteo4.sy<0){
+            meteo4.sy=meteorad/2;
+              meteovely2*=-1;
+        }
+        //alert(bh+' '+meteo1.sy);
+        if(meteo1.sy+2*meteorad > bh){
+          meteo1.sy=bh-meteorad*2;
+          meteovely1*=-1;
+        }
+        
+        if(meteo2.sy +2*meteorad> bh){
+            meteo2.sy=bh-meteorad*2;
+          meteovely2*=-1;
+        }
+        
+        if(meteo3.sy+2*meteorad > bh){
+            meteo3.sy=bh-meteorad*2;
+          meteovely3*=-1;
+        }
+        
+        if(meteo4.sy +2*meteorad> bh){
+            meteo4.sy=bh-meteorad*2;
+          meteovely4*=-1;
+        }
+        */
+
+        for (i=0;i<everything.length;i++) {
+            everything[i].draw();
+        }
+        /*
+        ctx.font='40px arial';
+        ctx.strokeStyle='blue';
+        ctx.strokeText('score: '+score,10,430);
+        */
+       //tid2= setInterval(moveall,100);
+
+    }
+
+    function checkInArray(name){
+        var k;
+        for(k=0;k<everything.length;k++){
+            if(everything[k]==name)
+                return 1;
+        }
+        return 0;
+    }
+   
+    function change() {
+        // 이 함수는 새총으로부터 목표물이나 지면까지의 탄알의 움직임을 형성함
+        var dx = horvelocity;
+        //verticalvel2 = verticalvel1 + gravity;
+       // horvelocity+=gravity/2;
+        verticalvel1+=gravity;
+        verticalvel2 =verticalvel1;
+       //var dy = (verticalvel1 + verticalvel2)*.5;
+        var dy=verticalvel2;
+        //verticalvel1 = verticalvel2;
+       
+        missile1.svx=dx;
+        missile1.svy=dy;
+        missile1.movethis();
+       // alert(meteo1.sx);
+       /*
+        if(meteo1.sx<100){
+            alert('aa');
+            meteovelx1=-10;
+            meteovely1*=-1;  
+        }
+        */
+
+        // 목표물에 닿았는지 검사
+        var bx = missile1.sx;
+        var by = missile1.sy;
+        if(missile1.sx+missile1.swidth <0 ||missile1.sx > boss.sx+boss.swidth/2 || missile1.sy+missile1.sheight<0 || missile1.sy>cheight){
+            clearInterval(tid);
+            missile1.img=missileimage;
+            missile1.sx=character.sx+character.swidth;
+            missile1.sy=character.sy+30;
+            missileweapon.px=character.sx;
+            missileweapon.py=character.sy;
+            missileweapon.bx=character.sx;
+            missileweapon.by=character.sy;
+        }
+        for(var i=0;i<meteos.length;i++){
+            if(missile1.sy>meteos[i].sy && missile1.sy+missile1.sheight/2 < meteos[i].sy+meteos[i].sheight ){
+                if(missile1.sx >meteos[i].sx && missile1.sx<meteos[i].sx+meteos[i].swidth){
+                    missile1.img=missileexplodeimage;
+                    missile1.stop();
+                    setTimeout(function(){
+                        clearInterval(tid);
+                        missile1.img=missileimage;
+                        missile1.sx=character.sx+character.swidth;
+                        missile1.sy=character.sy+30;
+                        missileweapon.px=character.sx;
+                        missileweapon.py=character.sy;
+                        missileweapon.bx=character.sx;
+                        missileweapon.by=character.sy;
+                    },500);
+                   
+                }
+            }
+        }
+      
+       
+
+        drawall();  
+    }
+
+</script>
+</head>
+<body onLoad="init();">  
+
+    <canvas id="canvas" width="1100" height="1000">
+        이 브라우저에서는 HTML5의 canvas 요소가 지원되지 않습니다.
+    </canvas>  
+    <br/>
+        마우스를 누른 채 탄알을 드래그하세요. 마우스 버튼을 놓으면 새총이 발사됩니다. 
+        새총은 최종 위치에 그대로 있게 됩니다. 게임을 다시 하려면 페이지를 새로고침 하세요.
+   
+</body>
+</html>

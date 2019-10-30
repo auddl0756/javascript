@@ -1,0 +1,650 @@
+<!doctype <!DOCTYPE html>
+<html>
+<head>
+  
+    <title>game3re 0.9-야구 게임(2015124147 이명륜)</title>
+   
+    <script>
+        var cwidth = 1200;
+        var cheight = 1200;
+        var ctx;
+        var ctx2;
+        var canvas1;
+        var everything = [];
+        var strikecount=0;
+        var ballcount=0;
+        var outcount=0;
+        var inmotion = false;
+        var horvelocity;
+        var verticalvel1;
+        var verticalvel2;
+        var ball1vx=0;
+        var ball1vy=10;
+        var ballrad=15;
+        var startballx=380;
+        var startbally=190;
+        var tid,tid2;
+        var gravity = 2;  // 멋진 호가 그려지게 임의로 지정
+
+
+        var movextime1, moveytime1;
+        var keyonx1 = 0, keyony1 = 0;
+        var savekeyx1, savekeyy1;
+
+        var sign=[];    ///구질 저장할 배열..직구/슬라이더/스크류볼/스탑볼
+
+        var baseball=new Image();
+        var hitterinit=new Image();
+        var hitterbefore=new Image();
+        var hitterhitting=new Image();
+        var hitterafter=new Image();
+        var bat=new Image();
+        var groundimage=new Image();
+       var moundimage=new Image();
+
+        baseball.src='공.png';
+        hitterinit.src='타자.png';
+        hitterbefore.src='타자2.png';
+        hitterhitting.src='타자타격.png';
+        hitterafter.src='타격후.png';
+        bat.src='배트.png';
+        groundimage.src='야구장배경.png';
+        moundimage.src='마운드.png';
+
+        var nocountimage=new Image();
+        var strikeimage=new Image(); 
+        var ballimage=new Image();
+        var outimage=new Image();
+        
+        nocountimage.src='노카운트.png';
+        strikeimage.src='스트라이크.png';
+        ballimage.src='볼.png';
+        outimage.src='아웃.png';
+
+
+        function PitcherArm(bx,by,px,py,stylestring) {
+            this.bx = bx;
+            this.by = by;
+            this.px = px;
+            this.py = py;
+            
+            this.strokeStyle = stylestring;
+            this.draw = drawArm;
+            this.moveit = moveArm;    
+        }
+
+            function drawArm() {
+                ctx.strokeStyle = this.strokeStyle;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(this.bx,this.by);
+                ctx.lineTo(this.px,this.py);
+            
+                ctx.stroke();
+            }
+
+            function moveArm(dx,dy) {
+                this.bx -=dx;
+                this.by -=dy;
+                this.px-=dx;
+                this.py-=dy;
+            }
+
+        var pitchingMachine=new PitcherArm(startballx,startbally,startballx,startbally);
+
+
+         function Picture (sx,sy,swidth,sheight,svx,svy,imga) {
+            this.sx = sx;
+            this.sy = sy;
+            this.img = imga;
+            this.swidth = swidth;
+            this.sheight = sheight;
+            this.svx=svx;
+            this.svy=svy;
+            this.draw = drawAnImage;
+            this.movethis=moveAnImage;       ///tank1 moves..added
+            
+            this.stop=stopAnImage;
+           
+         }
+	
+        function drawAnImage() {
+            ctx.drawImage(this.img,this.sx,this.sy,this.swidth,this.sheight);
+        }
+
+        function moveAnImage(){
+            //this.sx-=this.dx;
+            //this.sy-=this.dy;
+            this.sx+=this.svx;
+            this.sy+=this.svy;
+        }
+        
+        function stopAnImage(){
+            this.svx=0;
+            this.svy=0;
+        }
+
+        function init(){
+            ctx = document.getElementById('canvas').getContext('2d');
+            //ctx2= document.getElementById('batDOM').getContext('2d');
+            //batDOM=document.getElementById('canvas');
+            canvas1 = document.getElementById('canvas');
+            canvas1.addEventListener('mousedown',findball,false);
+            canvas1.addEventListener('mousemove',moveit,false);
+            canvas1.addEventListener('mouseup',finish,false);
+            // 처음 그리기
+            drawall();  
+        } 
+        //init();
+
+        var hitter1=new Picture(200,500,150,150,0,0,hitterinit);
+        var ball1=new Picture(startballx,startbally,20,20,ball1vx,ball1vy,baseball);
+        var bat1=new Picture(200,510,100,100,0,0,bat);
+        var ground=new Picture(0,0,cwidth,cheight/2,0,0,groundimage);
+        var mound=new Picture(startballx-60,startbally+30,120,30,0,0,moundimage);
+        var l=30;
+        var rr=25;
+        var strikecount1=new Picture(100,hitter1.sy,rr,rr,0,0,nocountimage);
+        var strikecount2=new Picture(100+l,hitter1.sy,rr,rr,0,0,nocountimage);
+        var ballcount1=new Picture(100,hitter1.sy+l,rr,rr,0,0,nocountimage);
+        var ballcount2=new Picture(100+l,hitter1.sy+l,rr,rr,0,0,nocountimage);
+        var ballcount3=new Picture(100+2*l,hitter1.sy+l,rr,rr,0,0,nocountimage);
+        var outcount1=new Picture(100,hitter1.sy+2*l,rr,rr,0,0,nocountimage);
+        var outcount2=new Picture(100+l,hitter1.sy+2*l,rr,rr,0,0,nocountimage);
+        var outcount3=new Picture(100+2*l,hitter1.sy+2*l,rr,rr,0,0,nocountimage);
+
+         everything.push(ground);
+          everything.push(mound);
+        everything.push(hitter1);
+        everything.push(ball1);
+       
+        everything.push(pitchingMachine);
+       
+        everything.push(strikecount1);
+        everything.push(strikecount2);
+        everything.push(ballcount1);
+        everything.push(ballcount2);
+        everything.push(ballcount3);
+        everything.push(outcount1);
+        everything.push(outcount2);
+        everything.push(outcount3);
+        
+
+        function findball(ev) {
+            var mx;
+            var my;
+            if ( ev.layerX ||  ev.layerX == 0) { // 파이어폭스, 크롬
+                mx= ev.layerX;
+                my = ev.layerY;
+                //alert(mx+"   "+my);
+            } else if (ev.offsetX || ev.offsetX == 0) { // 오페라
+                mx = ev.offsetX;
+                my = ev.offsetY;
+            }
+            // alert(distsq(mx,my, ball1.sx,ball1.sy) < ball1.swidth/2*ball1.swidth/2);
+           // alert(mx +' '+my+' '+ball1.sx+" "+ball1.sy);
+            if (distsq(mx,my, ball1.sx,ball1.sy) < ball1.swidth/2*ball1.swidth/2) {
+                inmotion = true;
+               
+                drawall();
+            }
+        }
+
+         document.addEventListener('keydown', keydownfunction);
+        document.addEventListener('keyup', keyupfunction);
+        
+        function keyupfunction() {
+        
+            if (event.keyCode == 37 || event.keyCode == 39) {
+                clearInterval(movextime1);
+                keyonx1 = 0;
+                // keyony1=0;
+                
+            }
+            //degree=0;
+            hitter1.sx=200;
+        }
+        var swing=0;
+        function keydownfunction(event) {
+           
+            //방향키 제외한 다른 키코드는 무시.
+            if (event.keyCode)
+                event.returnValue = false;
+
+            //player1 왼쪽,오른쪽 방향 움직임을 정의
+            if (event.keyCode == 37 ) {
+                savekeyx1 = event.keyCode;
+                if (keyonx1 != 1) {
+                    keyonx1 = 1;   //키 꺼짐
+                    movextime1 = setInterval(keymovex1, 40);
+                }
+            }
+
+            //player1 위쪽,아래쪽 방향 움직임을 정의
+            if (event.keyCode == 39) {
+                 savekeyx1 = event.keyCode;
+                if (keyonx1 != 1) {
+                    keyonx1 = 1;   //키 꺼짐
+                    movextime1 = setInterval(keymovex1, 40);
+                }
+            }
+
+            if(event.keyCode==38){
+                sign.push(38);
+            }
+            if(event.keyCode==40){
+                sign.push(40);
+            }
+
+            drawall();
+        }
+            var degree=0;
+            var count=0;
+
+         function keymovex1() {
+           
+             if(degree==0 ){
+                 hitter1.img=hitterinit;
+             }
+             else if(degree==1){
+               
+                 hitter1.img=hitterafter;
+                 //alert(bat1.sx+' '+bat1.sy);        //200,510
+                 swing=1;
+                 degree=0;
+             }
+             /*
+             else if(degree == 8){
+                 degree==0;
+                 //swing=1;
+             }
+             */
+        
+             else{
+                 hitter1.img=hitterbefore;
+             }
+            if (savekeyx1 == 37) {       // p1 left
+                var w=bat1.swidth;
+                var h=bat1.sheight;
+                   
+                    ctx.save();
+                    ctx.translate(310,600);
+                    ctx.clearRect(bat1.sx-1,bat1.sy-1,bat1.swidth+2,bat1.sheight+1);
+                   degree=0;
+                   //ctx.rotate(15*degree*Math.PI/180);
+                   ctx.drawImage(bat,-w,-h,w,h);
+                  // ctx.clearRect(bat1.sx-1,bat1.sy-1,bat1.swidth+2,bat1.sheight+1);
+                    
+                   ctx.restore();
+                    //alert('3737');
+            }
+            
+            if (savekeyx1 == 39) {       //p1 right
+                var w=bat1.swidth;
+                var h=bat1.sheight;
+               
+                    ctx.save();
+                    ctx.translate(310,600);
+                   
+                    degree=1;
+                    
+                   ctx.clearRect(bat1.sx-1,bat1.sy-1,bat1.swidth+2,bat1.sheight+1);
+                   ctx.rotate(-(degree*180)*Math.PI/180);
+                   //alert(bat1.sx + ' ' + bat1.sy);
+                   ctx.drawImage(bat,-w,-h,w,h);
+                   
+                   ctx.restore();
+
+            }
+        }
+
+        function checksign(){
+            if(sign[0]==38 && sign[1]==38){
+                gravity=0;
+            }
+            if(sign[0]==38 && sign[1]==40){
+                gravity=2;
+            }
+            if(sign[0]==40 && sign[1]==38){
+                gravity=-2;
+            }
+            if(sign[0]==40 && sign[1]==40){
+                  gravity=0;
+            }
+            sign.pop();
+            sign.pop(); 
+            
+        }
+          function initballcount(){
+            ballcount1.img=nocountimage;
+            ballcount2.img=nocountimage;
+            ballcount3.img=nocountimage;
+        }
+        function initstrikecount(){
+            strikecount1.img=nocountimage;
+            strikecount2.img=nocountimage;
+        }
+        
+        function checkcount(){
+            var d;
+            if(ball1.svy>=40){
+                d=60;
+            }
+            else if(ball1.svy<40 && ball1.svy >=30){
+                d=40;
+            }
+            else if(ball1.svy <30 && ball1.svy >20){
+                d=20;
+                // alert('c');
+            }
+            else {
+                d=5;
+            }
+              if(ball1.sy>cy-d/2 && ball1.sy < cy+d){
+                if(ball1.sx+10 >cx-zone && ball1.sx+10<cx+zone){
+                    strikecount=1;
+                     ballcount=0;
+                }
+                else{
+                    strikecount=0;
+                    ballcount=1;
+                }
+               //alert(strikecount);
+            }
+        }
+
+        function drawcount(){
+           // var i;
+          
+           if(counthit!=1){
+            if(strikecount==1 || (strikecount==0 && swing==1)){
+                //alert(strikecount);
+                swing=0;
+                strikecount=0;
+                ballcount=0;
+                  if(strikecount1.img==nocountimage){
+                      strikecount1.img=strikeimage;
+                  }
+                  else if(strikecount1.img!=nocountimage && strikecount2.img==nocountimage){
+                      strikecount2.img=strikeimage;
+                  }
+                  else{
+                      strikecount1.img=nocountimage;
+                      strikecount2.img=nocountimage;
+                      if(outcount1.img==nocountimage){
+                          outcount1.img=outimage;
+                          initstrikecount();
+                          initballcount();
+                          //alert('strike out');
+                          //degree=0;
+                      }
+                      else if(outcount1.img!=nocountimage && outcount2.img==nocountimage){
+                          outcount2.img=outimage;
+                          initstrikecount();
+                          initballcount();
+                          //alert('strike out');
+                      }
+                      else if(outcount1.img!=nocountimage && outcount2.img!=nocountimage && outcount3.img==nocountimage){
+                          outcount3.img=outimage;
+                        initstrikecount();
+                          initballcount();
+                          alert(' 3out. game over');
+                          //alert('strike out');
+                      }
+                      else{
+                          initstrikecount();
+                          initballcount();
+                          
+                      }
+                  }   
+            }
+        }
+            if(strikecount!=1 && ballcount==1 && swing==0){
+               //else{
+                ballcount=0;
+                if(ballcount1.img==nocountimage){
+                    ballcount1.img=ballimage;
+                }
+                else if(ballcount1.img!=nocountimage && ballcount2.img==nocountimage){
+                    ballcount2.img=ballimage;
+                }
+                else if(ballcount1.img !=nocountimage && ballcount2.img!=nocountimage && ballcount3.img==nocountimage){
+                    ballcount3.img=ballimage;
+                }
+                else{
+                    //alert('four ball');
+                    initstrikecount();
+                    initballcount();
+                    ballcount1.img=nocountimage;
+                    ballcount2.img=nocountimage;
+                    ballcount3.img=nocountimage;
+                }
+            }
+            //drawall();
+            
+    }
+
+         // 거리의 제곱을 계산에 이용
+        function distsq(x1,y1,x2,y2) {
+            return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+        }
+            // 탄알 드래그와 pitchingMachine 변경을 위한 함수
+        function moveit(ev) {
+            var mx;
+            var my;
+            if (inmotion) {
+                if ( ev.layerX ||  ev.layerX == 0) { // 파이어폭스
+                   
+                        mx= ev.layerX;
+                        my = ev.layerY;
+                   
+                    //alert(mx+"   "+my);
+                } else if (ev.offsetX || ev.offsetX == 0) { // 오페라
+                    mx = ev.offsetX;
+                    my = ev.offsetY;
+                }
+
+                ball1.sx = mx;
+                ball1.sy = my;
+                pitchingMachine.bx = mx;
+                pitchingMachine.by = my;
+                drawall();
+            }
+        }
+
+        function finish(ev) {
+            // 마우스에서 손을 뗄 때, 탄알과 pitchingMachine이 드래그돼 있다면,
+            // 탄알이 포물선을 그리며 운동하게끔 지정
+            //alert(inmotion);
+            if (inmotion) {
+                inmotion = false;
+                         
+                var outofcannon = distsq(pitchingMachine.bx,pitchingMachine.by,pitchingMachine.px,pitchingMachine.py)/500;
+                
+                if(outofcannon >15){
+                    outofcannon=6;
+                }
+                if(outofcannon<6){
+                    outofcannon=6;
+                }
+                //alert(outofcannon);
+                horvelocity= 5*outofcannon*Math.cos(Math.PI/2);
+                verticalvel1= 5*outofcannon*Math.sin(Math.PI/2);
+
+               // alert(horvelocity+' '+verticalvel1);
+                drawall();
+                checksign();
+                tid=setInterval(change,100);
+                //tid2=setInterval(drawcount,100);
+            }
+        }
+         var cx;
+          var cy;
+          var zone;
+        function drawboard(){
+            ctx.beginPath();
+            ctx.lineWidth=3;
+            //ctx.strokeStyle='r'
+            cx=hitter1.sx+hitter1.swidth+25;
+            cy=hitter1.sy+hitter1.sheight;
+            
+            zone=40;
+            var d=400;
+            var r=Math.sqrt((cx-d)*(cx-d) + (cy-d) * (cy-d))+300;
+            var z=2.35;
+            ctx.moveTo(cx,cy);
+            ctx.lineTo(cx-d,cy-d);
+            ctx.moveTo(cx,cy);
+            ctx.lineTo(cx+d,cy-d);
+            ctx.moveTo(cx,cy);
+            ctx.arc(cx,cy,r,Math.PI/2-z,Math.PI/2+z,true);
+           
+            //ctx.moveTo(cx-zone,cy);
+            //ctx.lineTo(cx-zone,cy+10);
+            //ctx.moveTo()
+            ctx.strokeRect(cx-zone,cy-zone*3/2,zone*2,zone*3);
+
+            ctx.stroke();
+        }
+        function drawall(){
+            ctx.clearRect(0,0,cwidth,cheight);
+            var i;
+
+            for (i=0;i<everything.length;i++) {
+                everything[i].draw();
+            }
+            drawboard();
+            //drawcount();
+            ctx.font='25px arial';
+            ctx.strokeStyle='black';
+            ctx.strokeText('구종 사인: 1.Streight(↓↓) 2.Curve right(↑↓) 3.Curve left(↓↑) ',450,650);
+
+        }
+
+       //drawall();
+        var counthit=0;
+        function change() {
+            // 이 함수는 새총으로부터 목표물이나 지면까지의 탄알의 움직임을 형성함
+            var dx = horvelocity;
+            //verticalvel2 = verticalvel1 + gravity;
+            horvelocity+=gravity/2;
+            //var dy = (verticalvel1 + verticalvel2)*.5;
+            var dy=verticalvel1;
+            //verticalvel1 = verticalvel2;
+            
+            ball1.svx=dx;
+            ball1.svy=dy;
+            ball1.movethis();
+           
+            // 목표물에 닿았는지 검사
+            var bx = ball1.sx;
+            var by = ball1.sy;
+         
+
+          ///공 쳣을 때..
+            //cy=650
+          //out
+          if((ball1.sy<655 && ball1.sy>650)&& degree==1 && counthit==0){
+               if(ball1.sx+10 >cx-zone && ball1.sx+10<cx+zone){   
+                   alert('땅볼 아웃');
+                   counthit=1;
+                   ball1.sy=500;
+                   ball1.svy*=-.3;
+                   verticalvel1*=-.3;
+
+                   if(outcount1.img==nocountimage){
+                          outcount1.img=outimage;
+                          initstrikecount();
+                          initballcount();
+                          //alert('strike out');
+                          //degree=0;
+                      }
+                      else if(outcount1.img!=nocountimage && outcount2.img==nocountimage){
+                          outcount2.img=outimage;
+                          initstrikecount();
+                          initballcount();
+                          //alert('strike out');
+                      }
+                      else if(outcount1.img!=nocountimage && outcount2.img!=nocountimage && outcount3.img==nocountimage){
+                          outcount3.img=outimage;
+                        initstrikecount();
+                          initballcount();
+                          alert(' 3out. game over');
+                          //alert('strike out');
+                      }
+                   
+               }
+          }
+          //안타
+          else if((ball1.sy<=650 && ball1.sy>645) ||(ball1.sy >= 655 && ball1.sy <660)&& degree==1 && counthit==0){
+               if(ball1.sx+10 >cx-zone && ball1.sx+10<cx+zone){   
+                   counthit=1;
+                   ball1.sy=400; alert('1루타'); 
+                   ball1.svy*=-1;
+                   verticalvel1*=-1;
+                   
+               }
+          }
+          //장타
+          else if((ball1.sy<=645 && ball1.sy>=640) || (ball1.sy<=665 && ball1.sy>=660) && degree==1 && counthit==0){
+               if(ball1.sx+10 >cx-zone && ball1.sx+10<cx+zone){ 
+                alert('장타');  
+                   counthit=1;
+                   ball1.sy=400;
+                   ball1.svy*=-2;
+                   verticalvel1*=-2;
+                   
+               }
+          }
+          ///홈런
+          else if((ball1.sy<640 && ball1.sy>=635) ||(ball1.sy<=670 && ball1.sy>665) && degree==1 && counthit==0){
+               if(ball1.sx+10 >cx-zone/2 && ball1.sx+10<cx+zone/2){   
+                   counthit=1;
+                   ball1.sy=400; alert('홈런'); 
+                   ball1.svy*=-3.5;
+                   verticalvel1*=-3.5;
+                   
+               }
+          }
+
+            checkcount();
+
+            if(ball1.sy >hitter1.sy+hitter1.sheight+50 || ball1.sy<50 || ball1.sx <0 || ball1.sx> 900){
+                     ball1.stop();
+                     
+                     clearInterval(tid);
+                   
+                    
+                     drawcount();
+                     if(counthit==1){
+                    strikecount1.img=nocountimage;
+                    strikecount2.img=nocountimage;
+                    ballcount1.img=nocountimage;
+                    ballcount2.img=nocountimage;
+                    ballcount3.img=nocountimage;
+                    }
+                     counthit=0;
+                   // clearInterval(tid2);
+                     //clearInterval(tid);
+                    ball1.sx=startballx;
+                    ball1.sy=startbally;
+                    pitchingMachine.bx=startballx;
+                    pitchingMachine.by=startbally;
+                    pitchingMachine.px=startballx;
+                    pitchingMachine.py=startbally;
+            }
+           
+              drawall();
+        }
+     
+
+    </script>
+</head>
+
+<body onLoad='init()'>
+<canvas id='canvas' width='1100' height='1000'>
+</canvas>
+
+    
+</body>
+</html>
