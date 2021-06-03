@@ -23,3 +23,4 @@ document.writeln(typeof b);
 document.writeln(typeof b2);
 document.writeln(typeof c);
 document.writeln(typeof d);
+//string number number boolean object
