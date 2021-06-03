@@ -29,4 +29,29 @@ var absNum = Math.abs(-1.7);
 document.writeln("<br> ",absNum);
 
 
+//내장 객체 - Array :: 배열이라고 하는데 java의 List임. 
+var arr = new Array();
+for(var i=0;i<10;i++) arr[i]=i;
+
+var arr2 = [1,2,3,4,5];
+
+arr.sort(); //정렬
+arr.reverse();  
+arr.pop();  //가장 뒤 원소 삭제
+arr.push(1);    //가장 뒤에 원소 삽입
+arr.length();   //배열 size
+
+
+//내장 객체 - String
+var s = new String("hello world");
+var s2 = "hello world2";
+
+s.charAt(0);    //자바랑 같네
+s.indexOf(0);
+s.substring(0,2);   //[시작 인덱스,끝 인덱스)
+s.length();
+
+
+
+
 
