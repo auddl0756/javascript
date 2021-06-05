@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        //scope : 변수,함수의 유효 범위 
+        // var : 지역/전역
+        // function : 지역/전역
+
+
+        //즉시 실행 함수
+        // (function(){
+        //     document.writeln("hello?");
+        // }());
+
+        (function(){
+            var num=100;
+            function alertNum(){
+                document.writeln(num);
+            }
+            alertNum();
+        }());
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
