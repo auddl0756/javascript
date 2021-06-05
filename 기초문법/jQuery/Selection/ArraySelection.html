@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.js"></script>
+    <script>
+        $(function(){
+            var obj =[
+                {"area" : "seoul"},
+                {"area" : "busan"},
+                {"area" : "daegu"}
+            ]
+            
+            $(obj).each(function(i,o){
+                console.log(i+":",o);
+                // document.writeln(i+":"+o,"<br>");
+            });
+            console.log("==the end1 ====");
+
+            $.each($("#menu2 li"),function(i,o){
+                console.log(i+":",o);
+            });
+            console.log("==the end2 ====");
+
+            $.each($("#menu2 li"),function(i){
+                console.log(i+":"+$(this));   
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>탐색 선택자</h1>
+    <ul id="menu1">
+        <li>내용 1-1</li>
+        <li>내용 1-2</li>
+        <li>내용 1-3</li>
+    </ul>
+
+    <ul id="menu2">
+        <li>내용 2-1</li>
+        <li>내용 2-2</li>
+        <li>내용 2-3</li>
+    </ul>
+
+</body>
+</html>
