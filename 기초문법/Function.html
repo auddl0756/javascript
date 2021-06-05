@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        //함수 정의
+        function func(){
+            document.write("function called. <br>");
+        }
+
+        //익명 함수로 선언하고 참조 변수에 담기.
+        var f = function(){ 
+            document.write("this is also function. <br>");
+        }
+
+        // 함수 호출.
+        // 정의된 함수인 경우 꼭 함수 호출문이 정의문 보다 아래에 있을 필요는 없음
+        func();
+        f();
+        
+    </script>
+</head>
+<body>
+
+</body>
+</html>
