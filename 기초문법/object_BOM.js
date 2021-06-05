@@ -29,6 +29,12 @@ var reservated = setTimeout(function(){
 },3000);
 
 
-//location 객체 : URL 창 관련
-location.href="http://www.naver.com";
+//location 객체 : 브라우저 관련
+location.href="http://www.naver.com";   //해당 URL로 이동시킴.
+location.reload();  //새로 고침
 
+//history 객체 
+history.length();
+// history.back(); //이전 페이지로 이동
+// history.back(2);
+// history.go(-2);
