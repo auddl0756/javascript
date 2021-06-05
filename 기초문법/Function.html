@@ -21,13 +21,19 @@
         func();
         f();
 
-        
+
         function calc(a,b){
             return a+b;
         }
 
-        document.writeln(calc(10,2));
+        document.writeln(calc(10,2)+"<br>");
         
+        function calc2(){
+            return arguments[0]+arguments[1];
+        }
+
+        document.writeln(calc2(10,2)+"<br>");
+
     </script>
 </head>
 <body>
